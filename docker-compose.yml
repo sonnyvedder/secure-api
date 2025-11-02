@@ -2,26 +2,33 @@ version: "3.8"
 
 services:
   postgres:
-    image: postgres:15-alpine
-    container_name: postgres-db
+    image: postgres:15
+    container_name: secure-db
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: secure_db
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: securedb
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5440:5432"
     networks:
       - secure-net
 
   secure-api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: secure-api
+    restart: always
     depends_on:
       - postgres
     env_file: .env
+    volumes:
+      - .:/app   # 👈 live code mount for local dev
+      - /app/node_modules
+    command: npm run start:dev  # 👈 hot reload inside container
     ports:
       - "3000:3000"
     networks:
